@@ -19,7 +19,7 @@ pipeline {
                 script {
                     // Push Docker image to Docker registry
                     withCredentials([usernamePassword(credentialsId: 'docker-credential', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh 'docker login -u $"DOCKER_USER" -p $"DOCKER_PASSWORD" docker.io'
+                        sh 'docker login -u $DOCKER_USER -p $DOCKER_PASSWORD docker.io'
                         sh 'docker push atuldatagithub/test-jenkins:0.1'
                         }
                     }
