@@ -10,11 +10,6 @@ pipeline {
                 }
             }
         }
-        stage('Test') {
-            steps {
-                // Run any tests if applicable
-            }
-        }
         stage('Deploy') {
             steps {
                 script {
