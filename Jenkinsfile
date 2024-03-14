@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        DOCKER_CREDENTIALS = credentials('321a47fe-725d-4a11-9c08-44fc1a764a88') // Assuming you've set up the credentials in Jenkins
+        DOCKER_CREDENTIALS = credentials('docker-credential') // Assuming you've set up the credentials in Jenkins
     }
     
     stages {
@@ -18,7 +18,7 @@ pipeline {
             steps {
                 script {
                     // Push Docker image to Docker registry
-                    withCredentials([usernamePassword(credentialsId: '321a47fe-725d-4a11-9c08-44fc1a764a88', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    withCredentials([usernamePassword(credentialsId: 'docker-credential', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASSWORD')]) {
                         docker.withRegistry('https://dockerhub.com', DOCKER_USER, DOCKER_PASSWORD) {
                             dockerImage.push()
                     
