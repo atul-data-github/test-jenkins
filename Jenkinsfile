@@ -20,7 +20,7 @@ pipeline {
                     // Push Docker image to Docker registry
                         sh 'echo $DOCKER_CREDENTIALS_PSW | docker login -u $DOCKER_CREDENTIALS_USR  docker.io --password-stdin'
                         sh 'docker push atuldatagithub/test-jenkins:$(git rev-parse --short HEAD)'
-                        sh 'docker run -d --expose 8000 -p 8000:8000 atuldatagithub/test-jenkins:$(git rev-parse --short HEAD)'
+                        sh 'docker stop $(docker ps --quiet --filter "label=atuldatagithub/test-jenkins") && docker run -d --expose 8000 --label atuldatagithub/test-jenkins -p 8000:8000 atuldatagithub/test-jenkins:$(git rev-parse --short HEAD) || docker run -d --expose 8000 --label atuldatagithub/test-jenkins -p 8000:8000 atuldatagithub/test-jenkins:$(git rev-parse --short HEAD)'
                     }
                 }
             }
