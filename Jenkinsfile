@@ -10,7 +10,7 @@ pipeline {
             steps {
                 script {
                     // Build Docker image
-                    dockerImage = docker.build('sample-fastapi')
+                    sh 'docker build -t atuldatagithub/test-jenkins:0.1 .'
                 }
             }
         }
@@ -19,15 +19,11 @@ pipeline {
                 script {
                     // Push Docker image to Docker registry
                     withCredentials([usernamePassword(credentialsId: 'docker-credential', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        docker.withRegistry('https://dockerhub.com', DOCKER_USER, DOCKER_PASSWORD) {
-                            dockerImage.push()
-                    
-                            // Run Docker container
-                            dockerImage.run('-d -p 8000:8000')
+                        sh 'docker login -u $"DOCKER_USER" -p $"DOCKER_PASSWORD" docker.io'
+                        sh 'docker push atuldatagithub/test-jenkins:0.1'
                         }
                     }
                 }
             }
         }
     }
-}
