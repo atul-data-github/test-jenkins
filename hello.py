@@ -5,4 +5,4 @@ app = FastAPI()
 
 @app.get("/")
 def read_root():
-    return {"Hello World": "Job done"}
+    return {"Hello World": "Deployment done"}
