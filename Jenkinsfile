@@ -23,10 +23,14 @@ pipeline {
         }
         stage('Deploy to Kubernetes') {
             steps {
-                withCredentials([file(credentialsId: 'kubeconfig-minikube', variable: 'KUBECONFIG_PATH')]) {
+                withCredentials([string(credentialsId: 'kubeconfig-minikube-text', variable: 'KUBECONFIG_CONTENT')]) {
                     script {
                         sh '''
-                            export KUBECONFIG=$KUBECONFIG_PATH
+                            # Save kubeconfig from secret text
+                            echo "$KUBECONFIG_CONTENT" > kubeconfig.yaml
+                            
+                            # Use this kubeconfig for kubectl
+                            export KUBECONFIG=kubeconfig.yaml
                             
                             # Patch deployment with latest image tag
                             IMAGE_TAG=$(git rev-parse --short HEAD)
