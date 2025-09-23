@@ -1,10 +1,10 @@
 pipeline {
     agent any
-    
+
     environment {
         DOCKER_CREDENTIALS = credentials('docker-credential')
     }
-    
+
     stages {
         stage('Build') {
             steps {
@@ -23,19 +23,17 @@ pipeline {
         }
         stage('Deploy to Kubernetes') {
             steps {
-                withCredentials([string(credentialsId: 'kubeconfig-minikube-text', variable: 'KUBECONFIG_CONTENT')]) {
+                // Inject as file
+                withCredentials([file(credentialsId: 'kubeconfig-minikube-file', variable: 'KUBECONFIG_FILE')]) {
                     script {
                         sh '''
-                            # Save kubeconfig from secret text
-                            echo "$KUBECONFIG_CONTENT" > kubeconfig.yaml
-                            
-                            # Use this kubeconfig for kubectl
-                            export KUBECONFIG=kubeconfig.yaml
-                            
+                            # Use kubeconfig directly
+                            export KUBECONFIG=$KUBECONFIG_FILE
+
                             # Patch deployment with latest image tag
                             IMAGE_TAG=$(git rev-parse --short HEAD)
                             sed -i "s|atuldatagithub/test-jenkins:latest|atuldatagithub/test-jenkins:$IMAGE_TAG|" k8s/deployment.yaml
-                            
+
                             # Apply manifests
                             kubectl apply -f k8s/deployment.yaml
                             kubectl apply -f k8s/service.yaml
