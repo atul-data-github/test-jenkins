@@ -2,27 +2,43 @@ pipeline {
     agent any
     
     environment {
-        DOCKER_CREDENTIALS = credentials('docker-credential') // Assuming you've set up the credentials in Jenkins
+        DOCKER_CREDENTIALS = credentials('docker-credential')
     }
     
     stages {
         stage('Build') {
             steps {
                 script {
-                    // Build Docker image
                     sh 'docker build -t atuldatagithub/test-jenkins:$(git rev-parse --short HEAD) .'
                 }
             }
         }
-        stage('Deploy') {
+        stage('Push') {
             steps {
                 script {
-                    // Push Docker image to Docker registry
-                        sh 'echo $DOCKER_CREDENTIALS_PSW | docker login -u $DOCKER_CREDENTIALS_USR  docker.io --password-stdin'
-                        sh 'docker push atuldatagithub/test-jenkins:$(git rev-parse --short HEAD)'
-                        sh 'docker stop $(docker ps --quiet --filter "label=atuldatagithub/test-jenkins") && docker run -d --expose 8000 --label atuldatagithub/test-jenkins -p 8000:8000 atuldatagithub/test-jenkins:$(git rev-parse --short HEAD) || docker run -d --expose 8000 --label atuldatagithub/test-jenkins -p 8000:8000 atuldatagithub/test-jenkins:$(git rev-parse --short HEAD)'
+                    sh 'echo $DOCKER_CREDENTIALS_PSW | docker login -u $DOCKER_CREDENTIALS_USR docker.io --password-stdin'
+                    sh 'docker push atuldatagithub/test-jenkins:$(git rev-parse --short HEAD)'
+                }
+            }
+        }
+        stage('Deploy to Kubernetes') {
+            steps {
+                withCredentials([file(credentialsId: 'kubeconfig-minikube', variable: 'KUBECONFIG_PATH')]) {
+                    script {
+                        sh '''
+                            export KUBECONFIG=$KUBECONFIG_PATH
+                            
+                            # Patch deployment with latest image tag
+                            IMAGE_TAG=$(git rev-parse --short HEAD)
+                            sed -i "s|atuldatagithub/test-jenkins:latest|atuldatagithub/test-jenkins:$IMAGE_TAG|" k8s/deployment.yaml
+                            
+                            # Apply manifests
+                            kubectl apply -f k8s/deployment.yaml
+                            kubectl apply -f k8s/service.yaml
+                        '''
                     }
                 }
             }
         }
     }
+}
